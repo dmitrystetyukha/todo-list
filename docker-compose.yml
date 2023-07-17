@@ -1,0 +1,52 @@
+version: '3.1'
+
+services:
+
+  php:
+    build:
+      context: ./docker
+      dockerfile: ./php/Dockerfile
+    volumes:
+      - ./src:/var/www/public
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+    environment:
+      DB_HOST: db
+      DB_USER: db
+      DB_PASSWORD: db
+      DB_NAME: db
+    networks:
+      - todo-list
+    depends_on:
+      - db
+    expose:
+      - "9000"
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./src:/var/www/public
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    ports:
+      - "8080:80"
+      - "4433:443"
+    networks:
+      - todo-list
+    depends_on:
+      - php
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: db
+      POSTGRES_USER: db
+      POSTGRES_DB: db
+    volumes:
+      - ./db/data:/var/lib/mysql
+    networks:
+      - todo-list
+    ports:
+      - "5432:5432"
+
+networks:
+  todo-list:
+    driver: bridge
